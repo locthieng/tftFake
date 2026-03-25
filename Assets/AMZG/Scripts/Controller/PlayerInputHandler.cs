@@ -18,7 +18,7 @@ public class PlayerInputHandler : MonoBehaviour
     {
         // Lấy vị trí chuột hiện tại
         Vector2 mousePosition = Mouse.current.position.ReadValue();
-        Ray ray = Camera.main.ScreenPointToRay(mousePosition);
+        Ray ray = CameraController.Instance.GameCamera.ScreenPointToRay(mousePosition);
         RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, groundLayer))
