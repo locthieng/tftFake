@@ -40,7 +40,6 @@ public class MainCharacterController : Character
     [SerializeField] private GameObject[] toolObjects;
     [SerializeField] private Transform resourcePoint;
     [SerializeField] private GameObject[] pickaxeSkins;
-    [SerializeField] private RopeCylinder rope;
     //[SerializeField] private GroundGuide guide;
     public int CurrentToolLevel = 1;
     [SerializeField]
@@ -145,6 +144,13 @@ public class MainCharacterController : Character
         });
         // Đảm bảo cập nhật đúng Animation chạy
         SetAnimState(AnimState.isRunning);
+    }
+
+    public void StatusMoveToMapEnemy()
+    {
+        agent.enabled = false;
+        CurrentState = CharacterState.Idle;
+        SetAnimState(AnimState.isIdle);
     }
 
     public override void StartMoving()

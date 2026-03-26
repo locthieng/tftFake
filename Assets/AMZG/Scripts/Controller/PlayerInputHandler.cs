@@ -1,32 +1,48 @@
 ﻿using UnityEngine;
-using UnityEngine.InputSystem; // Thêm thư viện này
+using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
 public class PlayerInputHandler : MonoBehaviour
 {
     [SerializeField] private LayerMask groundLayer;
+
+    public static event System.Action<Vector2> OnPointerDownScreen;
+    public static event System.Action<Vector2> OnPointerUpScreen;
+    public static event System.Action<Vector3> OnPointerDownWorld;
+
     void Update()
     {
-        if (Mouse.current != null &&
-            (Mouse.current.leftButton.wasPressedThisFrame ||
-             Mouse.current.rightButton.wasPressedThisFrame))
-        {
-            MoveToMouseClick();
-        }
-    }
+        if (Mouse.current == null)
+            return;
 
-    private void MoveToMouseClick()
-    {
-        // Lấy vị trí chuột hiện tại
-        Vector2 mousePosition = Mouse.current.position.ReadValue();
-        Ray ray = CameraController.Instance.GameCamera.ScreenPointToRay(mousePosition);
-        RaycastHit hit;
-
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, groundLayer))
+        // Cập nhật trạng thái click dựa trên Input System
+        if (Mouse.current.leftButton.wasPressedThisFrame || Mouse.current.rightButton.wasPressedThisFrame)
         {
-            if (MainCharacterController.Instance != null)
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
             {
-                MainCharacterController.Instance.MoveToPositionFromClick(hit.point);
+                return;
             }
+            Vector2 mousePosition = Mouse.current.position.ReadValue();
+
+            // Phát event screen position
+            OnPointerDownScreen?.Invoke(mousePosition);
+
+            Ray ray = CameraController.Instance.GameCamera.ScreenPointToRay(mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
+            {
+                OnPointerDownWorld?.Invoke(hit.point);
+
+                if (MainCharacterController.Instance != null)
+                {
+                    MainCharacterController.Instance.MoveToPositionFromClick(hit.point);
+                }
+            }
+        }
+
+        if (Mouse.current.leftButton.wasReleasedThisFrame || Mouse.current.rightButton.wasReleasedThisFrame)
+        {
+            Vector2 mousePosition = Mouse.current.position.ReadValue();
+            OnPointerUpScreen?.Invoke(mousePosition);
         }
     }
 }

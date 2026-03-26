@@ -8,6 +8,7 @@ public class CameraController : Singleton<CameraController>
 {
     [SerializeField] private TransformFollow transformFollower;
     public Camera GameCamera;
+    public Camera UICamera;
     private float transformFollowStickiness;
 
     void Start()
@@ -27,8 +28,9 @@ public class CameraController : Singleton<CameraController>
         transformFollower.Stickiness = transformFollowStickiness;
     }
 
-    public void FollowTarget(Transform target)
+    public void FollowTarget(ArenaController target)
     {
-        transformFollower.Target = target;
-    }
+        transformFollower.Target = target.transform;
+        MythicalController.Instance.CheckMythicalAvatar(target);
+    } 
 }

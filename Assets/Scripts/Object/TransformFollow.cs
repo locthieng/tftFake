@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Android.Types;
 using UnityEngine;
 
 public enum Vector3Axis
@@ -55,4 +56,10 @@ public class TransformFollow : MonoBehaviour
             }
         }
     }
+
+    public bool IsHomeArena(Vector3 mapHome)
+    {
+        if (Target.transform.position == mapHome) return true;
+        return false;
+    }    
 }
