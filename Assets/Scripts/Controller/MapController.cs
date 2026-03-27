@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class MapController : Singleton<MapController>
 {
+    [SerializeField] public HeroesDatabase heroesDatabase;
     [SerializeField] public List<ArenaController> mapArenas = new List<ArenaController>(); 
     [SerializeField] private MainCharacterController mainCharacter;
     [SerializeField] public ArenaController mapMain;

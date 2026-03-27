@@ -31,7 +31,10 @@ public class PlayerInputHandler : MonoBehaviour
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
             {
                 OnPointerDownWorld?.Invoke(hit.point);
-
+                if (EffectPooler.Instance != null)
+                {
+                    EffectPooler.Instance.SpawnEffect(hit.point);
+                }
                 if (MainCharacterController.Instance != null)
                 {
                     MainCharacterController.Instance.MoveToPositionFromClick(hit.point);

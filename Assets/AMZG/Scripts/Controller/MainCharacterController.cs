@@ -30,8 +30,6 @@ public class MainCharacterController : Character
     [SerializeField] private bool isShoveling;
     [SerializeField] private bool isMining;
 
-    RaycastHit raycastHitSnow;
-    [SerializeField] private float checkDistance = 1;
     [SerializeField] private float miningToolRange = 1;
     [SerializeField] private SphereCollider toolSphereChecker;
     [SerializeField] private float minMoveThreshold = 0.01f;
@@ -40,7 +38,6 @@ public class MainCharacterController : Character
     [SerializeField] private GameObject[] toolObjects;
     [SerializeField] private Transform resourcePoint;
     [SerializeField] private GameObject[] pickaxeSkins;
-    //[SerializeField] private GroundGuide guide;
     public int CurrentToolLevel = 1;
     [SerializeField]
     private Material runtimeMaterial;
