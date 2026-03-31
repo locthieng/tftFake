@@ -8,6 +8,7 @@ public class HeroInfo : MonoBehaviour
     public TMPro.TextMeshProUGUI clanType;
     public TMPro.TextMeshProUGUI classesType;
     public TMPro.TextMeshProUGUI price;
+    [SerializeField] private UIButton button;
 
     public void SetUp(HeroData data)
     {
@@ -16,5 +17,11 @@ public class HeroInfo : MonoBehaviour
         clanType.text = data.Clan.ToString();
         classesType.text = data.Classes.ToString();
         price.text = data.Price.ToString();
-    }    
+    }  
+    
+    public void OnClick()
+    {
+        // spawn hero on queue, off enable button, null hero data
+        gameObject.SetActive(false);
+    }
 }
