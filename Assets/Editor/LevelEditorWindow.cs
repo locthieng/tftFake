@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
 
 public class LevelEditorWindow : EditorWindow
 {
@@ -13,10 +14,20 @@ public class LevelEditorWindow : EditorWindow
         GetWindow<LevelEditorWindow>("Level Editor");
     }
 
+    void OnEnable()
+    {
+        if (!Application.isPlaying)
+        {
+            AutoFindLevelData();
+        }
+    }
+
     private void OnGUI()
     {
         GUILayout.Label("LEVEL EDITOR", EditorStyles.boldLabel);
 
+        // Theo dõi sự thay đổi của Level Index để tự tìm data
+        EditorGUI.BeginChangeCheck();
         levelIndex = EditorGUILayout.IntField("Level Index", levelIndex);
 
         currentLevelData = (LevelData)EditorGUILayout.ObjectField(
@@ -35,19 +46,35 @@ public class LevelEditorWindow : EditorWindow
 
         GUILayout.Space(10);
 
-        if (GUILayout.Button("💾 Save Level"))
+        if (GUILayout.Button("Save Level"))
         {
             SaveLevel();
         }
 
-        if (GUILayout.Button("📥 Load Level"))
+        if (GUILayout.Button("Load Level"))
         {
             LoadLevel();
         }
 
-        if (GUILayout.Button("🧹 Clear Level"))
+        if (GUILayout.Button("Clear Level"))
         {
             ClearLevel();
+        }
+    }
+
+    private void AutoFindLevelData()
+    {
+        string fileName = $"Level_{levelIndex}";
+        string[] guids = AssetDatabase.FindAssets(fileName, new[] { "Assets/Levels" });
+
+        if (guids.Length > 0)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+            currentLevelData = AssetDatabase.LoadAssetAtPath<LevelData>(path);
+        }
+        else
+        {
+            currentLevelData = null;
         }
     }
 
@@ -56,6 +83,7 @@ public class LevelEditorWindow : EditorWindow
     {
         LevelData data = ScriptableObject.CreateInstance<LevelData>();
         data.levelIndex = levelIndex;
+        data.objects = new List<LevelObjectData>();
 
         LevelObject[] objs = FindObjectsOfType<LevelObject>();
 
@@ -81,8 +109,12 @@ public class LevelEditorWindow : EditorWindow
 
         AssetDatabase.CreateAsset(data, path);
         AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
 
-        Debug.Log("✅ Saved Level: " + path);
+        // Tự động gán data vừa lưu vào ô Level Data cho Sếp
+        currentLevelData = AssetDatabase.LoadAssetAtPath<LevelData>(path);
+
+        Debug.Log("✅ Đã lưu và tự động gán Level: " + path);
     }
 
     // ================= LOAD =================
@@ -90,30 +122,21 @@ public class LevelEditorWindow : EditorWindow
     {
         if (currentLevelData == null)
         {
-            Debug.LogWarning("❌ Missing LevelData!");
+            Debug.LogWarning("❌ Chưa có Level Data để load, thưa Sếp!");
             return;
         }
 
-        GameObject levelController = GameObject.Find("LevelController");
-
-        if (levelController == null)
+        if (levelRoot == null)
         {
-            Debug.LogError("❌ Không tìm thấy LevelController trong scene!");
+            Debug.LogError("❌ Sếp chưa gán Level Root (LevelController) kìa!");
             return;
         }
 
-        foreach (Transform child in levelController.transform)
-        {
-            Undo.DestroyObjectImmediate(child.gameObject);
-        }
+        // Xóa các object cũ trước khi load
+        ClearLevel();
 
         Undo.IncrementCurrentGroup();
         int group = Undo.GetCurrentGroup();
-
-        GameObject root = new GameObject($"Level_{currentLevelData.levelIndex}");
-        Undo.RegisterCreatedObjectUndo(root, "Create Level Root");
-
-        root.transform.SetParent(levelController.transform);
 
         foreach (var objData in currentLevelData.objects)
         {
@@ -124,23 +147,18 @@ public class LevelEditorWindow : EditorWindow
 
             obj.transform.position = objData.position;
             obj.transform.rotation = objData.rotation;
-
-            obj.transform.SetParent(root.transform);
+            obj.transform.SetParent(levelRoot);
 
             LevelObject levelObj = obj.GetComponent<LevelObject>();
             if (levelObj == null)
             {
                 levelObj = Undo.AddComponent<LevelObject>(obj);
             }
-
             levelObj.prefabSource = objData.prefab;
         }
 
         Undo.CollapseUndoOperations(group);
-
-        Selection.activeGameObject = root;
-
-        Debug.Log("✅ Loaded Level vào LevelController!");
+        Debug.Log("✅ Đã Load Level xong cho Sếp!");
     }
 
     // ================= CLEAR =================
@@ -148,7 +166,7 @@ public class LevelEditorWindow : EditorWindow
     {
         if (levelRoot == null)
         {
-            Debug.LogWarning("❌ LevelController chưa được gán!");
+            Debug.LogWarning("❌ Cần gán Level Root để dọn dẹp ạ!");
             return;
         }
 
@@ -157,16 +175,10 @@ public class LevelEditorWindow : EditorWindow
 
         for (int i = levelRoot.childCount - 1; i >= 0; i--)
         {
-            Transform child = levelRoot.GetChild(i);
-
-            if (child != null)
-            {
-                Undo.DestroyObjectImmediate(child.gameObject);
-            }
+            Undo.DestroyObjectImmediate(levelRoot.GetChild(i).gameObject);
         }
 
         Undo.CollapseUndoOperations(group);
-
-        Debug.Log("🧹 Clear Level thành công!");
+        Debug.Log("🧹 Đã dọn dẹp sạch sẽ Level!");
     }
 }
